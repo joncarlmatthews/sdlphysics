@@ -123,6 +123,9 @@
     <ClInclude Include="src\Physics\Particle.h" />
     <ClInclude Include="src\Physics\Vec2.h" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="README.md" />
+  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>

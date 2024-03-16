@@ -1,16 +1,17 @@
 #include "Application.h"
 
 bool Application::IsRunning() {
-    return running;
+    return this->running;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 // Setup function (executed once in the beginning of the simulation)
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Setup() {
-    running = Graphics::OpenWindow();
+    this->running = Graphics::OpenWindow();
 
-    // TODO: setup objects in the scene
+    // setup objects in the scene
+    this->particle = new Particle(50.0f, 100.0f, 1.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -43,7 +44,7 @@ void Application::Update() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
-    Graphics::DrawFillCircle(200, 200, 40, 0xFFFFFFFF);
+    Graphics::DrawFillCircle(this->particle->position.x, this->particle->position.y, 4, 0xFFFFFFFF);
     Graphics::RenderFrame();
 }
 
@@ -52,6 +53,7 @@ void Application::Render() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Destroy() {
     // TODO: destroy all objects in the scene
+    delete this->particle;
 
     Graphics::CloseWindow();
 }
