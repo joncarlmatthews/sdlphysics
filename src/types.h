@@ -4,7 +4,7 @@
 //
 // TYPES.H
 //==============================================================================
-// Use type definitions that can be shared across the platform and game layers.
+// Custom typedefs that specify exact-width types for increased code portability.
 
 
 // Useful definitions from the C Standard Library.
@@ -13,7 +13,7 @@
 #include <stdbool.h> // true, false, bool
 
 
-// Custom typedefs that specify exact-width types for increased code portability.
+// Custom typedefs
 // -----------------------------------------------------------------------------
 
 /*

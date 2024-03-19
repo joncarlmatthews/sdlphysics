@@ -11,7 +11,7 @@ void Application::Setup() {
     this->running = Graphics::OpenWindow();
 
     // setup objects in the scene
-    this->particle = new Particle(50.0f, 100.0f, 1.0f);
+    this->particle = new Particle(0.0f, 0.0f, 1.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -37,15 +37,21 @@ void Application::Input() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Update() {
     // update all objects in the scene
+    
     int32 msToSleep = (TARGET_MS_PF - (SDL_GetTicks() - this->timePreviousFrame));
     if(msToSleep > 0){
         SDL_Delay(msToSleep);
     }
 
+    // Delta time (in seconds)
+    float32 deltaTime = ((SDL_GetTicks() - this->timePreviousFrame) / 1000.0f);
+
     this->timePreviousFrame = SDL_GetTicks();
 
     // Constant velocity:
-    this->particle->velocity = Vec2(5.0f, 0.0f);
+    this->particle->velocity.x = 200.0f * deltaTime;
+    this->particle->velocity.y = 100.0f * deltaTime;
+
     this->particle->position += this->particle->velocity;
 }
 
