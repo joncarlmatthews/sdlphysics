@@ -326,6 +326,9 @@
     <ClInclude Include="lib\SDL2\include\SDL_vulkan.h">
       <Filter>lib\SDL2</Filter>
     </ClInclude>
+    <ClInclude Include="src\types.h">
+      <Filter>src</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="README.md" />

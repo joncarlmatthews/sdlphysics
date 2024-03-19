@@ -36,7 +36,17 @@ void Application::Input() {
 // Update function (called several times per second to update objects)
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Update() {
-    // TODO: update all objects in the scene
+    // update all objects in the scene
+    int32 msToSleep = (TARGET_MS_PF - (SDL_GetTicks() - this->timePreviousFrame));
+    if(msToSleep > 0){
+        SDL_Delay(msToSleep);
+    }
+
+    this->timePreviousFrame = SDL_GetTicks();
+
+    // Constant velocity:
+    this->particle->velocity = Vec2(5.0f, 0.0f);
+    this->particle->position += this->particle->velocity;
 }
 
 ///////////////////////////////////////////////////////////////////////////////
