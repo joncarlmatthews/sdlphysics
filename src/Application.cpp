@@ -64,6 +64,8 @@ void Application::Update() {
 
     this->particle->position += this->particle->velocity;
 
+#if CAP_FRAMERATE
+
     uint64 frameProcessingTime = (SDL_GetTicks64() - frameStartTimestamp);
 
 #ifdef _DEBUG_FPS
@@ -82,6 +84,9 @@ void Application::Update() {
     std::cout << "Frame took: " << (SDL_GetTicks64() - frameStartTimestamp) << "ms. Target: " << TARGET_MS_PF << "ms" << std::endl << std::endl;
     frameIndex++;
 #endif // _DEBUG_FPS
+
+#endif // CAP_FRAMERATE
+
 }
 
 ///////////////////////////////////////////////////////////////////////////////

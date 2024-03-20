@@ -6,8 +6,12 @@
 #include "Graphics.h"
 #include "Physics/Particle.h"
 
+#define CAP_FRAMERATE false
+
+#if CAP_FRAMERATE
 #define TARGET_FPS 120
 #define TARGET_MS_PF (1000 / TARGET_FPS)
+#endif
 
 #ifdef _DEBUG
 //#define _DEBUG_FPS true
