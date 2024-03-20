@@ -6,7 +6,7 @@
 #include "Graphics.h"
 #include "Physics/Particle.h"
 
-#define TARGET_FPS 60
+#define TARGET_FPS 120
 #define TARGET_MS_PF (1000 / TARGET_FPS)
 
 #ifdef _DEBUG

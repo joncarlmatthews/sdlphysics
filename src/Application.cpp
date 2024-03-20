@@ -45,9 +45,8 @@ void Application::Update() {
     float32 deltaTime = ((frameStartTimestamp - this->prevFrameTimestamp) / 1000.0f);
     this->prevFrameTimestamp = SDL_GetTicks64(); // "Start the clock"
 
-    static sizet frameIndex = 0;
-
 #ifdef _DEBUG_FPS
+    static sizet frameIndex = 0;
     std::cout << "Frame " << frameIndex << std::endl;
     std::cout << "Delta time: " << deltaTime << std::endl;
 #endif // _DEBUG_FPS
@@ -60,8 +59,8 @@ void Application::Update() {
 #endif // DEBUG
 
     // Constant velocity:
-    this->particle->velocity.x = (2256.0f/4.0f) * deltaTime;
-    //this->particle->velocity.y = 100.0f * deltaTime;
+    this->particle->velocity.x = 200.0f * deltaTime;
+    this->particle->velocity.y = 100.0f * deltaTime;
 
     this->particle->position += this->particle->velocity;
 
@@ -81,9 +80,8 @@ void Application::Update() {
 
 #ifdef _DEBUG_FPS
     std::cout << "Frame took: " << (SDL_GetTicks64() - frameStartTimestamp) << "ms. Target: " << TARGET_MS_PF << "ms" << std::endl << std::endl;
-#endif // _DEBUG_FPS
-
     frameIndex++;
+#endif // _DEBUG_FPS
 }
 
 ///////////////////////////////////////////////////////////////////////////////
