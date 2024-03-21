@@ -125,6 +125,7 @@
     <ClInclude Include="src\types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include=".gitignore" />
     <None Include="README.md" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

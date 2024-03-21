@@ -12,7 +12,7 @@ void Application::Setup() {
     this->prevFrameTimestamp = SDL_GetTicks64();
 
     // setup objects in the scene
-    this->particle = new Particle(0.0f, 0.0f, 1.0f);
+    this->particle = new Particle(500.0f, 0.0f, 1.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -58,11 +58,30 @@ void Application::Update() {
     }
 #endif // DEBUG
 
-    // Constant velocity:
-    this->particle->velocity.x = 200.0f * deltaTime;
-    this->particle->velocity.y = 100.0f * deltaTime;
+#if true
+    this->particle->acceleration.x = 0.0f;
+    this->particle->acceleration.y = meters(1);
 
-    this->particle->position += this->particle->velocity;
+    // Constant velocity:
+    this->particle->velocity.x = (this->particle->velocity.x + (this->particle->acceleration.x * deltaTime));
+    this->particle->velocity.y = (this->particle->velocity.y + (this->particle->acceleration.y * deltaTime));
+
+    this->particle->position.x = (this->particle->position.x + (this->particle->velocity.x * deltaTime));
+    this->particle->position.y = (this->particle->position.y + (this->particle->velocity.y * deltaTime));
+#endif
+
+#if false
+    this->particle->acceleration = Vec2(0.0f, 200.0f);
+    this->particle->velocity += (this->particle->acceleration * deltaTime);
+    this->particle->position += (this->particle->velocity * deltaTime);
+#endif
+
+    if (this->particle->position.y > Graphics::windowHeight) {
+        this->particle->position.y = (Graphics::windowHeight-4);
+    }
+    if (this->particle->position.x > Graphics::windowWidth) {
+        this->particle->position.x = (Graphics::windowWidth-4);
+    }
 
 #if CAP_FRAMERATE
 
@@ -106,4 +125,9 @@ void Application::Destroy() {
     delete this->particle;
 
     Graphics::CloseWindow();
+}
+
+uint32 Application::meters(float32 pixels)
+{
+    return (uint32)(pixels * (float32)PIXELS_PER_METER);
 }

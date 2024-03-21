@@ -9,14 +9,15 @@
 #define CAP_FRAMERATE false
 
 #if CAP_FRAMERATE
-#define TARGET_FPS 120
+#define TARGET_FPS 60
 #define TARGET_MS_PF (1000 / TARGET_FPS)
 #endif
+
+#define PIXELS_PER_METER 100
 
 #ifdef _DEBUG
 //#define _DEBUG_FPS true
 #endif // _DEBUG
-
 
 class Application {
     private:
@@ -33,6 +34,7 @@ class Application {
         void Update();
         void Render();
         void Destroy();
+        uint32 meters(float32 pixels);
 };
 
 #endif
