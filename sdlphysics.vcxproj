@@ -31,6 +31,7 @@
     <ClCompile Include="src\Application.cpp" />
     <ClCompile Include="src\Graphics.cpp" />
     <ClCompile Include="src\Main.cpp" />
+    <ClCompile Include="src\Physics\Ball.cpp" />
     <ClCompile Include="src\Physics\Particle.cpp" />
     <ClCompile Include="src\Physics\Vec2.cpp" />
   </ItemGroup>
@@ -120,6 +121,7 @@
     <ClInclude Include="lib\SDL2_image\include\SDL_image.h" />
     <ClInclude Include="src\Application.h" />
     <ClInclude Include="src\Graphics.h" />
+    <ClInclude Include="src\Physics\Ball.h" />
     <ClInclude Include="src\Physics\Particle.h" />
     <ClInclude Include="src\Physics\Vec2.h" />
     <ClInclude Include="src\types.h" />

@@ -12,7 +12,8 @@ void Application::Setup() {
     this->prevFrameTimestamp = SDL_GetTicks64();
 
     // setup objects in the scene
-    this->particle = new Particle(500.0f, 0.0f, 1.0f);
+    this->particle = new Particle(10.0f, 10.0f, 1.0f);
+    this->ball = new Ball(0.0f, 0.0f, 1.0f, 20.0f);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -59,19 +60,9 @@ void Application::Update() {
 #endif // DEBUG
 
 #if true
-    this->particle->acceleration.x = 0.0f;
-    this->particle->acceleration.y = meters(1);
-
-    // Constant velocity:
-    this->particle->velocity.x = (this->particle->velocity.x + (this->particle->acceleration.x * deltaTime));
-    this->particle->velocity.y = (this->particle->velocity.y + (this->particle->acceleration.y * deltaTime));
-
-    this->particle->position.x = (this->particle->position.x + (this->particle->velocity.x * deltaTime));
-    this->particle->position.y = (this->particle->position.y + (this->particle->velocity.y * deltaTime));
-#endif
-
-#if false
-    this->particle->acceleration = Vec2(0.0f, 200.0f);
+    this->particle->acceleration = Vec2(0.0f, METERS(2.6)); // Acceleration == how much to increase the velocity by each frame
+    
+    // Integrate the acceleration and velocity to find the new position
     this->particle->velocity += (this->particle->acceleration * deltaTime);
     this->particle->position += (this->particle->velocity * deltaTime);
 #endif
@@ -84,7 +75,6 @@ void Application::Update() {
     }
 
 #if CAP_FRAMERATE
-
     uint64 frameProcessingTime = (SDL_GetTicks64() - frameStartTimestamp);
 
 #ifdef _DEBUG_FPS
@@ -114,6 +104,7 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
     Graphics::DrawFillCircle(this->particle->position.x, this->particle->position.y, 4, 0xFFFFFFFF);
+    //this->ball->Draw();
     Graphics::RenderFrame();
 }
 
@@ -123,11 +114,7 @@ void Application::Render() {
 void Application::Destroy() {
     // TODO: destroy all objects in the scene
     delete this->particle;
+    delete this->ball;
 
     Graphics::CloseWindow();
-}
-
-uint32 Application::meters(float32 pixels)
-{
-    return (uint32)(pixels * (float32)PIXELS_PER_METER);
 }

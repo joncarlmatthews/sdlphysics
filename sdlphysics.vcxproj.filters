@@ -63,6 +63,9 @@
     <ClCompile Include="src\Main.cpp">
       <Filter>src</Filter>
     </ClCompile>
+    <ClCompile Include="src\Physics\Ball.cpp">
+      <Filter>src\Physics</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="lib\SDL2_gfx\SDL2_gfxPrimitives.h">
@@ -328,6 +331,9 @@
     </ClInclude>
     <ClInclude Include="src\types.h">
       <Filter>src</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Physics\Ball.h">
+      <Filter>src\Physics</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
