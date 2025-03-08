@@ -2,11 +2,11 @@
 #include "../Graphics.h"
 #include "Ball.h"
 
-Ball::Ball(float32 x, float32 y, float32 mass, float32 radians){
+Ball::Ball(float32 x, float32 y, float32 mass, uint32 radius){
     std::cout << "Ball constructor called" << std::endl;
     this->position = Vec2(x, y);
     this->mass = mass;
-    this->radians = radians;
+    this->radius = radius;
 }
 
 Ball::~Ball(){
@@ -14,5 +14,5 @@ Ball::~Ball(){
 }
 
 void Ball::Draw(){
-    Graphics::DrawFillCircle(this->position.x, this->position.y, this->radians, 0xFFFFFFFF);
+    Graphics::DrawFillCircle(this->position.x, this->position.y, this->radius, 0xFFFFFFFF);
 }

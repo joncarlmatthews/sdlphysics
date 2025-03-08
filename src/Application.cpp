@@ -8,12 +8,25 @@ bool Application::IsRunning() {
 // Setup function (executed once in the beginning of the simulation)
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Setup() {
+    SDL_Init(SDL_INIT_TIMER);
     this->running = Graphics::OpenWindow();
-    this->prevFrameTimestamp = SDL_GetTicks64();
+
+    this->performanceFreq = SDL_GetPerformanceFrequency();
+    this->prevFrameTimestamp = SDL_GetPerformanceCounter();
+
+    /*
+    SDL_DisplayMode mode;
+    if(SDL_GetCurrentDisplayMode(0, &mode) == 0){
+        int refreshRate = mode.refresh_rate;
+        std::cout << "Monitor Refresh Rate: " << refreshRate << " Hz" << std::endl;
+    } else{
+        std::cerr << "Failed to get display mode: " << SDL_GetError() << std::endl;
+    }
+    */
 
     // setup objects in the scene
     this->particle = new Particle(10.0f, 10.0f, 1.0f);
-    this->ball = new Ball(0.0f, 0.0f, 1.0f, 20.0f);
+    this->ball = new Ball(25.0f, 25.0f, 1.0f, 20);
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -39,63 +52,105 @@ void Application::Input() {
 ///////////////////////////////////////////////////////////////////////////////
 void Application::Update() {
     
-    uint64 frameStartTimestamp = SDL_GetTicks64();
+    uint64 frameStartTimestamp = SDL_GetPerformanceCounter();
 
     // Delta time (in seconds) The time taken between this frame starting
     // and the program execution to make it all the way back around to here again.
-    float32 deltaTime = ((frameStartTimestamp - this->prevFrameTimestamp) / 1000.0f);
-    this->prevFrameTimestamp = SDL_GetTicks64(); // "Start the clock"
+    float32 deltaTime = ((float32)(frameStartTimestamp - this->prevFrameTimestamp) / this->performanceFreq);
+
+    // How long in ms has elapsed between this frame starting and the previous one ending?
+    float64 msElapsed = this->getElapsedMsFromQPC(this->prevFrameTimestamp, frameStartTimestamp);
+
+    this->prevFrameTimestamp = frameStartTimestamp;
+
+    static sizet frameIndex = 0;
+
+    std::cout << "Frame " << frameIndex << std::endl;
+    std::cout << "Time elapsed since last frame " << msElapsed << std::endl;
 
 #ifdef _DEBUG_FPS
-    static sizet frameIndex = 0;
-    std::cout << "Frame " << frameIndex << std::endl;
     std::cout << "Delta time: " << deltaTime << std::endl;
 #endif // _DEBUG_FPS
    
-#ifdef _DEBUG
+#ifdef _IN_DEBUGGER
     // Clamp the framerate when in debugger
-    if(deltaTime > 0.033){
-        deltaTime = 0.033;
+    if(deltaTime > 0.016){
+        deltaTime = 0.016;
     }
-#endif // DEBUG
+#endif // _IN_DEBUGGER
 
-#if true
-    this->particle->acceleration = Vec2(0.0f, METERS(2.6)); // Acceleration == how much to increase the velocity by each frame
+    this->ball->acceleration = Vec2(METERS(2.6), METERS(2.6)); // Acceleration == how much to increase the velocity by each frame
+    //this->ball->acceleration = Vec2(0, 0);
     
     // Integrate the acceleration and velocity to find the new position
-    this->particle->velocity += (this->particle->acceleration * deltaTime);
-    this->particle->position += (this->particle->velocity * deltaTime);
-#endif
+    this->ball->velocity += (this->ball->acceleration * deltaTime);
+    this->ball->position += (this->ball->velocity * deltaTime);
 
-    if (this->particle->position.y > Graphics::windowHeight) {
-        this->particle->position.y = (Graphics::windowHeight-4);
-    }
-    if (this->particle->position.x > Graphics::windowWidth) {
-        this->particle->position.x = (Graphics::windowWidth-4);
+    if (this->ball->position.y < this->ball->radius){
+        this->ball->velocity.y = (this->ball->velocity.y * -1);
+        this->ball->position.y = this->ball->radius;
+    }else if (this->ball->position.y >= Graphics::windowHeight) {
+        this->ball->velocity.y = (this->ball->velocity.y*-1);
+        this->ball->position.y = (Graphics::windowHeight - this->ball->radius);
     }
 
-#if CAP_FRAMERATE
-    uint64 frameProcessingTime = (SDL_GetTicks64() - frameStartTimestamp);
+    if(this->ball->position.x <= this->ball->radius){
+        this->ball->velocity.x = (this->ball->velocity.x * -1);
+        this->ball->position.x = this->ball->radius;
+    }else if (this->ball->position.x >= Graphics::windowWidth) {
+        this->ball->velocity.x = (this->ball->velocity.x * -1);
+        this->ball->position.x = (Graphics::windowWidth - this->ball->radius);
+    }
+
+    FrameDelay(frameStartTimestamp, TARGET_MS_PF);
+
+    frameIndex++;
+}
+
+void Application::FrameDelay(uint64 frameStartTimestamp, float64 targetMsPf){
+
+    float64 frameProcessingTime = this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter());
 
 #ifdef _DEBUG_FPS
     std::cout << "Processing time: " << frameProcessingTime << "ms" << std::endl;
-#endif // _DEBUG_FPS
-    
-    int64 msToSleep = (TARGET_MS_PF - frameProcessingTime);
-    if(msToSleep > 0){
+#endif
+
+    float64 targetMsToSleep = (targetMsPf - frameProcessingTime);
+
+    if(targetMsToSleep > 0){
+
 #ifdef _DEBUG_FPS
-        std::cout << "Need to sleep for: " << msToSleep << "ms" << std::endl;
-#endif // _DEBUG
-        SDL_Delay(msToSleep);
+        std::cout << "Need to sleep for: " << targetMsToSleep << "ms" << std::endl;
+#endif
+
+        // Due to the unprecise nature of SDL_Delay, only use it for 10% of the required
+        // sleep time. Spin lock for the rest...
+        float64 sleepMs = (targetMsToSleep * 0.1);
+        uint32 sdlSleepMs = (uint32)sleepMs;
+
+        if(sdlSleepMs > 0){
+#ifdef _DEBUG_FPS
+            std::cout << "Delay sleeping for: " << sdlSleepMs << "ms" << std::endl;
+#endif
+            SDL_Delay(sdlSleepMs);
+        }
+
+#ifdef _DEBUG_FPS
+        std::cout << "Spinning for anything remaining..." << std::endl;
+#endif
+
+        // Spin lock for last few ms for higher precision
+        volatile uint64 *startCounter = &frameStartTimestamp;  // Prevents compiler optimization
+
+        while(((double)(SDL_GetPerformanceCounter() - *startCounter) * 1000.0 / this->performanceFreq) < targetMsPf);
+ 
     }
 
 #ifdef _DEBUG_FPS
-    std::cout << "Frame took: " << (SDL_GetTicks64() - frameStartTimestamp) << "ms. Target: " << TARGET_MS_PF << "ms" << std::endl << std::endl;
-    frameIndex++;
-#endif // _DEBUG_FPS
+    std::cout << "Frame took: " << this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter()) << "ms. Target: " << targetMsPf << "ms" << std::endl << std::endl;
+#endif
 
-#endif // CAP_FRAMERATE
-
+    
 }
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -104,7 +159,7 @@ void Application::Update() {
 void Application::Render() {
     Graphics::ClearScreen(0xFF056263);
     Graphics::DrawFillCircle(this->particle->position.x, this->particle->position.y, 4, 0xFFFFFFFF);
-    //this->ball->Draw();
+    this->ball->Draw();
     Graphics::RenderFrame();
 }
 
@@ -117,4 +172,9 @@ void Application::Destroy() {
     delete this->ball;
 
     Graphics::CloseWindow();
+}
+
+float64 Application::getElapsedMsFromQPC(uint64 startTicks, uint64 endTicks)
+{
+    return ( ((float64)(endTicks - startTicks)) * 1000.0 / this->performanceFreq);
 }

@@ -1,7 +1,7 @@
 #ifndef PARTICLE_H
 #define PARTICLE_H
 
-#include "Vec2.h";
+#include "Vec2.h"
 
 typedef struct Particle {
     Vec2 position;
