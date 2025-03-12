@@ -1,4 +1,6 @@
 #include "Application.h"
+#include <thread>  // Include for std::this_thread::sleep_for
+#include <chrono>  // Include for std::chrono::milliseconds
 
 bool Application::IsRunning() {
     return this->running;
@@ -107,52 +109,6 @@ void Application::Update() {
     frameIndex++;
 }
 
-void Application::FrameDelay(uint64 frameStartTimestamp, float64 targetMsPf){
-
-    float64 frameProcessingTime = this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter());
-
-#ifdef _DEBUG_FPS
-    std::cout << "Processing time: " << frameProcessingTime << "ms" << std::endl;
-#endif
-
-    float64 targetMsToSleep = (targetMsPf - frameProcessingTime);
-
-    if(targetMsToSleep > 0){
-
-#ifdef _DEBUG_FPS
-        std::cout << "Need to sleep for: " << targetMsToSleep << "ms" << std::endl;
-#endif
-
-        // Due to the unprecise nature of SDL_Delay, only use it for 10% of the required
-        // sleep time. Spin lock for the rest...
-        float64 sleepMs = (targetMsToSleep * 0.1);
-        uint32 sdlSleepMs = (uint32)sleepMs;
-
-        if(sdlSleepMs > 0){
-#ifdef _DEBUG_FPS
-            std::cout << "Delay sleeping for: " << sdlSleepMs << "ms" << std::endl;
-#endif
-            SDL_Delay(sdlSleepMs);
-        }
-
-#ifdef _DEBUG_FPS
-        std::cout << "Spinning for anything remaining..." << std::endl;
-#endif
-
-        // Spin lock for last few ms for higher precision
-        volatile uint64 *startCounter = &frameStartTimestamp;  // Prevents compiler optimization
-
-        while(((double)(SDL_GetPerformanceCounter() - *startCounter) * 1000.0 / this->performanceFreq) < targetMsPf);
- 
-    }
-
-#ifdef _DEBUG_FPS
-    std::cout << "Frame took: " << this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter()) << "ms. Target: " << targetMsPf << "ms" << std::endl << std::endl;
-#endif
-
-    
-}
-
 ///////////////////////////////////////////////////////////////////////////////
 // Render function (called several times per second to draw objects)
 ///////////////////////////////////////////////////////////////////////////////
@@ -172,6 +128,39 @@ void Application::Destroy() {
     delete this->ball;
 
     Graphics::CloseWindow();
+}
+
+void Application::FrameDelay(uint64 frameStartTimestamp, float64 targetMsPf) {
+    float64 frameProcessingTime = this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter());
+
+    #ifdef _DEBUG_FPS
+    std::cout << "Processing time: " << frameProcessingTime << "ms" << std::endl;
+    #endif
+
+    float64 remainingMs = targetMsPf - frameProcessingTime;
+
+    if(remainingMs > 0){
+        #ifdef _DEBUG_FPS
+        std::cout << "Need to sleep for: " << remainingMs << "ms" << std::endl;
+        #endif
+
+        // Use high-precision sleep instead of SDL_Delay
+        if(remainingMs > 1.0){
+            std::this_thread::sleep_for(std::chrono::milliseconds((int)remainingMs - 1));
+        }
+
+        #if false
+        // Spin-lock for the last tiny fraction of time to achieve precision
+        uint64 spinStart = SDL_GetPerformanceCounter();
+        while(this->getElapsedMsFromQPC(spinStart, SDL_GetPerformanceCounter()) < (remainingMs - 1.0)){}
+        #endif
+
+        #ifdef _DEBUG_FPS
+        std::cout << "Frame took: "
+            << this->getElapsedMsFromQPC(frameStartTimestamp, SDL_GetPerformanceCounter())
+            << "ms. Target: " << targetMsPf << "ms" << std::endl << std::endl;
+        #endif
+    }
 }
 
 float64 Application::getElapsedMsFromQPC(uint64 startTicks, uint64 endTicks)
